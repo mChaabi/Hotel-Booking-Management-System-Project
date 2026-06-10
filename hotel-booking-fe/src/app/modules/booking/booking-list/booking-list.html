@@ -1,0 +1,271 @@
+<div class="my-bookings animate-in">
+
+  <!-- ══ HEADER ══════════════════════════════════════════ -->
+  <div class="page-header">
+    <div>
+      <h1 class="page-title">Mes réservations</h1>
+      <p class="page-sub">
+        {{ bookings().length }} réservation{{ bookings().length > 1 ? 's' : '' }} au total
+      </p>
+    </div>
+    <a routerLink="/hotels" class="btn btn-primary">
+      + Nouvelle réservation
+    </a>
+  </div>
+
+  <!-- ══ FILTRES STATUT ═══════════════════════════════════ -->
+  <div class="filter-tabs">
+    <button class="ftab"
+            [class.active]="activeFilter() === 'ALL'"
+            (click)="setFilter('ALL')">
+      Toutes <span class="ftab-count">{{ bookings().length }}</span>
+    </button>
+    <button class="ftab"
+            [class.active]="activeFilter() === 'CONFIRMED'"
+            (click)="setFilter('CONFIRMED')">
+      Confirmées
+      <span class="ftab-count confirmed">
+        {{ countByStatus('CONFIRMED') }}
+      </span>
+    </button>
+    <button class="ftab"
+            [class.active]="activeFilter() === 'PENDING'"
+            (click)="setFilter('PENDING')">
+      En attente
+      <span class="ftab-count pending">
+        {{ countByStatus('PENDING') }}
+      </span>
+    </button>
+    <button class="ftab"
+            [class.active]="activeFilter() === 'CANCELLED'"
+            (click)="setFilter('CANCELLED')">
+      Annulées
+      <span class="ftab-count cancelled">
+        {{ countByStatus('CANCELLED') }}
+      </span>
+    </button>
+    <button class="ftab"
+            [class.active]="activeFilter() === 'COMPLETED'"
+            (click)="setFilter('COMPLETED')">
+      Terminées
+      <span class="ftab-count completed">
+        {{ countByStatus('COMPLETED') }}
+      </span>
+    </button>
+  </div>
+
+  <!-- ══ LOADING ═══════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="skeleton-wrap">
+      @for (i of [1,2,3]; track i) {
+        <div class="sk-card">
+          <div class="sk-img"></div>
+          <div class="sk-body">
+            <div class="sk-line w60"></div>
+            <div class="sk-line w40"></div>
+            <div class="sk-line w80"></div>
+          </div>
+          <div class="sk-right">
+            <div class="sk-price"></div>
+            <div class="sk-badge"></div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ══ LISTE DES RÉSERVATIONS ════════════════════════════ -->
+  @if (!loading()) {
+
+    @if (filtered().length === 0) {
+      <div class="empty-state">
+        <div class="empty-icon">📋</div>
+        <div class="empty-title">Aucune réservation trouvée</div>
+        <div class="empty-sub">
+          @if (activeFilter() === 'ALL') {
+            Vous n'avez pas encore de réservation.
+          } @else {
+            Aucune réservation avec ce statut.
+          }
+        </div>
+        <a routerLink="/hotels" class="btn btn-primary"
+           style="margin-top: 18px">
+          Découvrir les chambres
+        </a>
+      </div>
+    }
+
+    <div class="bookings-list">
+      @for (b of filtered(); track b.id) {
+        <div class="booking-card" [class]="'status-' + b.status.toLowerCase()">
+
+          <!-- Image chambre -->
+          <div class="bc-img">
+            <img [src]="b.primaryImageUrl || 'assets/images/room-default.jpg'"
+                 [alt]="b.roomType"
+                 (error)="onImgError($event)" />
+            <div class="bc-img-overlay">
+              <span [class]="'chip ' + statusCss(b.status)">
+                {{ statusLabel(b.status) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Infos principale -->
+          <div class="bc-body">
+
+            <div class="bc-ref">{{ b.bookingReference }}</div>
+
+            <div class="bc-hotel">{{ b.hotelName }}</div>
+
+            <div class="bc-room">
+              🛏️ {{ b.roomType }} · Chambre {{ b.roomNumber }}
+              · {{ b.hotelCity }}
+            </div>
+
+            <div class="bc-dates">
+              <div class="bc-date-item">
+                <div class="bdi-label">Arrivée</div>
+                <div class="bdi-val">
+                  {{ b.checkIn | date:'EEE d MMM yyyy' : '' : 'fr-FR' }}
+                </div>
+              </div>
+              <div class="bc-arrow">→</div>
+              <div class="bc-date-item">
+                <div class="bdi-label">Départ</div>
+                <div class="bdi-val">
+                  {{ b.checkOut | date:'EEE d MMM yyyy' : '' : 'fr-FR' }}
+                </div>
+              </div>
+              <div class="bc-nights">
+                {{ b.nights }} nuit{{ b.nights > 1 ? 's' : '' }}
+                · {{ b.guestsCount }} voyageur{{ b.guestsCount > 1 ? 's' : '' }}
+              </div>
+            </div>
+
+            <!-- Contact hôtel -->
+            <div class="bc-contact">
+              @if (b.hotelPhone) {
+                <a [href]="'tel:' + b.hotelPhone" class="contact-link">
+                  📞 {{ b.hotelPhone }}
+                </a>
+              }
+              @if (b.hotelEmail) {
+                <a [href]="'mailto:' + b.hotelEmail" class="contact-link">
+                  ✉️ {{ b.hotelEmail }}
+                </a>
+              }
+            </div>
+
+            <!-- Demandes spéciales -->
+            @if (b.specialRequests) {
+              <div class="bc-special">
+                💬 {{ b.specialRequests }}
+              </div>
+            }
+
+          </div>
+
+          <!-- Prix + Actions -->
+          <div class="bc-right">
+
+            <div class="bc-price-block">
+              <div class="bc-price">
+                {{ b.totalPrice | number:'1.0-0' }} MAD
+              </div>
+              <div class="bc-price-sub">
+                {{ b.nights }} nuits · {{ b.guestsCount }} pers.
+              </div>
+            </div>
+
+            <div class="bc-actions">
+
+              <!-- Bouton annuler (seulement si CONFIRMED ou PENDING) -->
+              @if (b.status === 'CONFIRMED' || b.status === 'PENDING') {
+                <button class="btn btn-sm btn-danger"
+                        [disabled]="cancelling() === b.id"
+                        (click)="openCancelModal(b)">
+                  @if (cancelling() === b.id) {
+                    Annulation...
+                  } @else {
+                    Annuler
+                  }
+                </button>
+              }
+
+              <!-- Rebooker (si annulé ou terminé) -->
+              @if (b.status === 'CANCELLED' || b.status === 'COMPLETED') {
+                <a routerLink="/hotels" class="btn btn-sm btn-outline">
+                  Réserver à nouveau
+                </a>
+              }
+
+            </div>
+
+            <div class="bc-created">
+              Réservé le {{ b.createdAt | date:'dd/MM/yyyy' }}
+            </div>
+
+          </div>
+
+        </div>
+      }
+    </div>
+
+  }
+
+  <!-- ══ MODAL ANNULATION ═══════════════════════════════════ -->
+  @if (showCancelModal()) {
+    <div class="modal-overlay" (click)="closeCancelModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+
+        <div class="modal-icon">⚠️</div>
+        <h3 class="modal-title">Annuler la réservation ?</h3>
+
+        <div class="modal-info">
+          <div class="mi-row">
+            <span>Référence</span>
+            <strong>{{ selectedBooking()?.bookingReference }}</strong>
+          </div>
+          <div class="mi-row">
+            <span>Hôtel</span>
+            <strong>{{ selectedBooking()?.hotelName }}</strong>
+          </div>
+          <div class="mi-row">
+            <span>Chambre</span>
+            <strong>{{ selectedBooking()?.roomType }}</strong>
+          </div>
+          <div class="mi-row">
+            <span>Dates</span>
+            <strong>
+              {{ selectedBooking()?.checkIn | date:'dd/MM' }}
+              → {{ selectedBooking()?.checkOut | date:'dd/MM/yyyy' }}
+            </strong>
+          </div>
+          <div class="mi-row total">
+            <span>Montant</span>
+            <strong>{{ selectedBooking()?.totalPrice | number:'1.0-0' }} MAD</strong>
+          </div>
+        </div>
+
+        <p class="modal-warn">
+          Le remboursement sera traité sous 5 à 7 jours ouvrés.
+        </p>
+
+        <div class="modal-btns">
+          <button class="btn btn-outline" (click)="closeCancelModal()">
+            Conserver ma réservation
+          </button>
+          <button class="btn btn-danger"
+                  [disabled]="cancelling() !== null"
+                  (click)="confirmCancel()">
+            @if (cancelling() !== null) { Annulation en cours... }
+            @else { Confirmer l'annulation }
+          </button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>

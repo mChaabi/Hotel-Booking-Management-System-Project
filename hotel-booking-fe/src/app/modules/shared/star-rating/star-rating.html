@@ -1,0 +1,13 @@
+<div class="stars-wrap">
+  @for (s of starsArray; track s) {
+    <span class="star"
+          [class.filled]="s <= stars"
+          [class.half]="s === halfStarIndex">
+      ★
+    </span>
+  }
+
+  @if (showNumber) {
+    <span class="rating-num">{{ stars % 1 === 0 ? stars + '.0' : stars }}</span>
+  }
+</div>

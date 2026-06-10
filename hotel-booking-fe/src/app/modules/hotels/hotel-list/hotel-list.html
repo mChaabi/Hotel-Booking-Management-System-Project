@@ -1,0 +1,259 @@
+<div class="hotel-list animate-in">
+
+  <!-- ══ HERO SEARCH ══════════════════════════════════════ -->
+  <div class="search-hero">
+    <div class="sh-inner">
+      <h1 class="sh-title">Trouvez votre chambre idéale</h1>
+      <p class="sh-sub">{{ totalRooms() }} chambres disponibles au Maroc</p>
+
+      <form [formGroup]="searchForm" (ngSubmit)="search()" class="search-form">
+        <div class="sf-main">
+
+          <div class="sf-field">
+            <div class="sf-icon">📍</div>
+            <input class="sf-input" formControlName="city" placeholder="Destination (ex: Tétouan, Marrakech...)" />
+          </div>
+
+          <div class="sf-field sm">
+            <div class="sf-icon">📅</div>
+            <input class="sf-input" type="date" formControlName="checkIn" [min]="today" placeholder="Arrivée" />
+          </div>
+
+          <div class="sf-field sm">
+            <div class="sf-icon">📅</div>
+            <input class="sf-input" type="date" formControlName="checkOut" [min]="searchForm.value.checkIn || today"
+              placeholder="Départ" />
+          </div>
+
+          <div class="sf-field xs">
+            <div class="sf-icon">👥</div>
+            <select class="sf-input" formControlName="guests">
+              @for (n of [1,2,3,4,5,6]; track n) {
+              <option [value]="n">{{ n }} pers.</option>
+              }
+            </select>
+          </div>
+
+          <button type="submit" class="sf-btn" [disabled]="loading()">
+            @if (loading()) { ⏳ }
+            @else { 🔍 Rechercher }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="content-wrap">
+
+    <!-- ══ FILTRES AVANCÉS ══════════════════════════════════ -->
+    <div class="filters-panel">
+
+      <div class="fp-group">
+        <div class="fp-label">Étoiles minimum</div>
+        <div class="star-btns">
+          @for (s of [1,2,3,4,5]; track s) {
+          <button type="button" class="star-btn" [class.on]="minStars() >= s" (click)="setMinStars(s)">
+            ★
+          </button>
+          }
+        </div>
+      </div>
+
+      <div class="fp-group">
+        <div class="fp-label">
+          Prix max / nuit :
+          <strong>{{ searchForm.value.maxPrice | number:'1.0-0' }} MAD</strong>
+        </div>
+        <input type="range" [formGroup]="searchForm" formControlName="maxPrice" min="200" max="10000" step="100"
+          class="price-range" />
+      </div>
+
+      <div class="fp-group">
+        <div class="fp-label">Équipements</div>
+        <div class="filter-chips">
+          <button type="button" class="fchip" [class.on]="filters.seaView" (click)="toggleFilter('seaView')">
+            🌊 Vue mer
+          </button>
+          <button type="button" class="fchip" [class.on]="filters.jacuzzi" (click)="toggleFilter('jacuzzi')">
+            🛁 Jacuzzi
+          </button>
+          <button type="button" class="fchip" [class.on]="filters.parking" (click)="toggleFilter('parking')">
+            🅿️ Parking
+          </button>
+          <button type="button" class="fchip" [class.on]="filters.breakfast" (click)="toggleFilter('breakfast')">
+            🍳 Petit-déj
+          </button>
+        </div>
+      </div>
+
+      <div class="fp-group">
+        <div class="fp-label">Trier par</div>
+        <select class="sort-sel" [formGroup]="searchForm" formControlName="sortBy">
+          <option value="STARS_DESC">⭐ Étoiles</option>
+          <option value="PRICE_ASC">💰 Prix croissant</option>
+          <option value="PRICE_DESC">💰 Prix décroissant</option>
+          <option value="RATING_DESC">👍 Mieux notés</option>
+        </select>
+      </div>
+
+    </div>
+
+    <!-- ══ RECOMMANDATION IA ════════════════════════════════ -->
+    @if (aiRec()) {
+    <div class="ai-banner">
+      <div class="ai-b-left">
+        <div class="ai-pulse"></div>
+        <div class="ai-label">Assistant IA</div>
+      </div>
+      <p class="ai-b-msg">{{ aiRec() }}</p>
+      <button class="ai-b-close" (click)="aiRec.set('')">✕</button>
+    </div>
+    }
+
+    <!-- ══ RÉSULTATS HEADER ══════════════════════════════════ -->
+    @if (!loading()) {
+    <div class="results-bar">
+      <div class="rb-count">
+        <strong>{{ totalRooms() }}</strong>
+        chambre{{ totalRooms() > 1 ? 's' : '' }} trouvée{{ totalRooms() > 1 ? 's' : '' }}
+      </div>
+    </div>
+    }
+
+    <!-- ══ SKELETON ══════════════════════════════════════════ -->
+    @if (loading()) {
+    <div class="rooms-grid">
+      @for (i of [1,2,3,4,5,6]; track i) {
+      <div class="room-skeleton">
+        <div class="sk-img"></div>
+        <div class="sk-body">
+          <div class="sk-line w70"></div>
+          <div class="sk-line w50"></div>
+          <div class="sk-line w40"></div>
+        </div>
+      </div>
+      }
+    </div>
+    }
+
+    <!-- ══ GRILLE DE CHAMBRES ════════════════════════════════ -->
+    @if (!loading()) {
+
+    @if (allRooms().length === 0) {
+    <div class="empty-state">
+      <div class="empty-icon">🏨</div>
+      <div class="empty-title">Aucune chambre trouvée</div>
+      <div class="empty-sub">
+        Essayez une autre destination ou modifiez vos filtres.
+      </div>
+      <button class="btn btn-primary" (click)="resetFilters()">
+        Réinitialiser les filtres
+      </button>
+    </div>
+    }
+
+    <div class="rooms-grid">
+      @for (room of allRooms(); track room.id; let i = $index) {
+      <div class="room-card" (click)="goToDetail(room)">
+
+        <!-- Image -->
+        <div class="rc-img">
+          <img [src]="room.primaryImageUrl || 'assets/images/room-default.jpg'" [alt]="room.typeLabel"
+            (error)="onImgError($event)" />
+
+          <!-- Badges -->
+          <div class="rc-badges">
+            @if (i === 0) {
+            <span class="badge gold">⭐ Recommandé IA</span>
+            }
+            @if (room.isAvailable && i !== 0) {
+            <span class="badge green">✓ Disponible</span>
+            }
+            @if (i === 2) {
+            <span class="badge blue">🔥 Populaire</span>
+            }
+          </div>
+
+          <!-- Favori -->
+          <button class="fav-btn" [class.active]="favorites.has(room.id)" (click)="toggleFav(room, $event)">
+            {{ favorites.has(room.id) ? '❤️' : '♡' }}
+          </button>
+        </div>
+
+        <!-- Corps -->
+        <div class="rc-body">
+
+          <div class="rc-type">{{ room.typeLabel }}</div>
+
+          <div class="rc-hotel">
+            {{ room.hotel.name }}
+           @if (room.hotel.city) { · {{ room.hotel.city }} }
+          </div>
+
+          <!-- Étoiles -->
+          <div class="rc-stars">
+            @for (s of starsArray(room.hotel.stars || 0); track s.n) {
+            <span [class.filled]="s.filled">★</span>
+            }
+            <span class="rc-star-num">{{ room.hotel.stars }}.0</span>
+          </div>
+
+          <!-- Équipements -->
+          <div class="rc-feats">
+            @if (room.seaView) { <span class="feat">🌊 Vue mer</span> }
+            @if (room.jacuzzi) { <span class="feat">🛁 Jacuzzi</span> }
+            @if (room.breakfast) { <span class="feat">🍳 Petit-déj</span> }
+            @if (room.wifi) { <span class="feat">📶 WiFi</span> }
+            @if (room.parking) { <span class="feat">🅿️ Parking</span> }
+            @if (room.roomSizeM2) {
+            <span class="feat">📐 {{ room.roomSizeM2 }}m²</span>
+            }
+            @if (room.floorNumber) {
+            <span class="feat">🏢 Étage {{ room.floorNumber }}</span>
+            }
+          </div>
+
+          <!-- Capacité -->
+          <div class="rc-capacity">
+            👥 Jusqu'à {{ room.capacity }} personne{{ room.capacity > 1 ? 's' : '' }}
+          </div>
+
+        </div>
+
+        <!-- Footer prix + bouton -->
+        <div class="rc-footer">
+          <div class="rc-price-block">
+            <div class="rc-price">
+              {{ room.pricePerNight | number:'1.0-0' }} MAD
+            </div>
+            <div class="rc-price-sub">/ nuit</div>
+          </div>
+          <a [routerLink]="['/booking', room.id]" class="btn-book" (click)="$event.stopPropagation()">
+            Réserver →
+          </a>
+        </div>
+
+      </div>
+      }
+    </div>
+
+    <!-- ══ PAGINATION ═══════════════════════════════════════ -->
+    @if (totalPages() > 1) {
+    <div class="pagination">
+      <button class="pg-btn" [disabled]="currentPage() === 0" (click)="goPage(currentPage() - 1)">
+        ← Précédent
+      </button>
+      <div class="pg-info">
+        Page <strong>{{ currentPage() + 1 }}</strong>
+        sur {{ totalPages() }}
+      </div>
+      <button class="pg-btn" [disabled]="currentPage() === totalPages() - 1" (click)="goPage(currentPage() + 1)">
+        Suivant →
+      </button>
+    </div>
+    }
+
+    }
+
+  </div><!-- /content-wrap -->
+</div>

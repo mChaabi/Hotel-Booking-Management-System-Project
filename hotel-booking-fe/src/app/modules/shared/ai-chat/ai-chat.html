@@ -1,0 +1,66 @@
+<button class="chat-fab" (click)="toggleChat()" [class.open]="isOpen()">
+  <span *ngIf="!isOpen()">💬</span>
+  <span *ngIf="isOpen()">✕</span>
+  <div class="fab-badge" *ngIf="unread() > 0">{{ unread() }}</div>
+</button>
+
+<div class="chat-window" [class.visible]="isOpen()">
+
+  <div class="chat-header">
+    <div class="chat-avatar">
+      <span>✨</span>
+    </div>
+    <div class="chat-title-area">
+      <div class="chat-title">Assistant LuxeStay</div>
+      <div class="chat-status">
+        <div class="status-dot"></div>
+        En ligne · réponse instantanée
+      </div>
+    </div>
+    <button class="chat-close" (click)="toggleChat()">✕</button>
+  </div>
+
+  <div class="chat-messages" #messagesContainer>
+
+    <div class="msg bot" *ngIf="messages().length === 0">
+      <div class="msg-bubble">
+        Bonjour ! 👋 Je suis votre assistant hôtelier LuxeStay.
+        Je peux vous aider à choisir une chambre, répondre à vos
+        questions, ou vous donner des informations sur nos hôtels.
+        Que puis-je faire pour vous ?
+      </div>
+      <div class="msg-time">maintenant</div>
+
+      <div class="quick-replies">
+        <button *ngFor="let s of suggestions" (click)="sendMessage(s)">{{ s }}</button>
+      </div>
+    </div>
+
+    <div *ngFor="let msg of messages()"
+         class="msg"
+         [class.user]="msg.role === 'user'"
+         [class.bot]="msg.role === 'assistant'">
+      <div class="msg-bubble">{{ msg.content }}</div>
+      <div class="msg-time">{{ msg.time }}</div>
+    </div>
+
+    <div class="msg bot" *ngIf="isTyping()">
+      <div class="msg-bubble typing">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="chat-input-area">
+    <input [(ngModel)]="inputText"
+           placeholder="Posez votre question..."
+           (keydown.enter)="sendMessage(inputText)"
+           [disabled]="isTyping()"
+           class="chat-input" />
+    <button class="send-btn"
+            (click)="sendMessage(inputText)"
+            [disabled]="!inputText.trim() || isTyping()">
+      ➤
+    </button>
+  </div>
+</div>

@@ -1,0 +1,72 @@
+<nav class="navbar">
+  <div class="nav-container">
+
+    <!-- Logo -->
+    <a routerLink="/dashboard" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22" fill="none" stroke="currentColor" stroke-width="1.8"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-name">LuxeStay</div>
+        <div class="logo-sub">Premium Hotels</div>
+      </div>
+    </a>
+
+    <!-- Navigation centrale -->
+    <div class="nav-links" [class.open]="mobileOpen()">
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link" (click)="mobileOpen.set(false)">
+        Accueil
+      </a>
+      <a routerLink="/hotels" routerLinkActive="active" class="nav-link" (click)="mobileOpen.set(false)">
+        Chambres
+      </a>
+      <a routerLink="/my-bookings" routerLinkActive="active" class="nav-link" (click)="mobileOpen.set(false)">
+        Mes réservations
+      </a>
+    </div>
+
+    <!-- Droite -->
+    <div class="nav-right">
+      <a routerLink="/hotels" class="btn-reserve">
+        + Nouvelle réservation
+      </a>
+
+      <!-- Avatar + menu dropdown -->
+      <div class="user-btn" (click)="dropOpen.set(!dropOpen())">
+        <div class="avatar">{{ initials() }}</div>
+        <span class="user-name">{{ user()?.firstName }}</span>
+        <svg class="chevron" [class.rotated]="dropOpen()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+
+        <!-- Dropdown -->
+        @if (dropOpen()) {
+          <div class="dropdown" (click)="$event.stopPropagation()">
+            <div class="drop-user">
+              <div class="drop-avatar">{{ initials() }}</div>
+              <div>
+                <div class="drop-name">{{ user()?.firstName }} {{ user()?.lastName }}</div>
+                <div class="drop-role">{{ user()?.role }}</div>
+              </div>
+            </div>
+            <div class="drop-sep"></div>
+            <a routerLink="/dashboard" class="drop-item" (click)="dropOpen.set(false)">📊 Tableau de bord</a>
+            <a routerLink="/my-bookings" class="drop-item" (click)="dropOpen.set(false)">📅 Mes réservations</a>
+            <a routerLink="/hotels" class="drop-item" (click)="dropOpen.set(false)">🛏️ Chambres</a>
+            <div class="drop-sep"></div>
+            <button class="drop-item danger" (click)="logout()">🚪 Déconnexion</button>
+          </div>
+        }
+      </div>
+
+      <!-- Burger mobile -->
+      <button class="burger" (click)="mobileOpen.update(v => !v)">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+
+  </div>
+</nav>

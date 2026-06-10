@@ -1,0 +1,140 @@
+$navy-dark: #0b1623;
+$gold-accent: #c8a96e;
+$border-soft: #e5e0d5;
+$text-light: #64748b;
+
+.room-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid $border-soft;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+
+  &:hover {
+    box-shadow: 0 12px 40px rgba($navy-dark, 0.12);
+    transform: translateY(-4px);
+
+    .room-img {
+      transform: scale(1.06);
+    }
+  }
+}
+
+.card-img {
+  height: 180px;
+  position: relative;
+  overflow: hidden;
+
+  .room-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+
+  .badges {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+
+    &-gold { background: $gold-accent; color: $navy-dark; }
+    &-green { background: #e8f5ee; color: #1a7a5e; }
+    &-new { background: $navy-dark; color: $gold-accent; }
+  }
+
+  .fav-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    border: none;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+    &:hover { transform: scale(1.1); background: white; }
+    &.active { color: #e11d48; }
+  }
+}
+
+.card-body {
+  padding: 16px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.room-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: $navy-dark;
+  margin-bottom: 4px;
+}
+
+.room-hotel {
+  font-size: 12px;
+  color: $text-light;
+  margin-bottom: 12px;
+}
+
+.feats {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+
+  .feat {
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #f8f9fa;
+    color: $text-light;
+    border: 1px solid #f1f5f9;
+  }
+}
+
+.card-footer {
+  margin-top: auto;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 12px;
+  border-top: 1px solid rgba($border-soft, 0.5);
+}
+
+.price {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: $navy-dark;
+  line-height: 1;
+}
+
+.price-sub {
+  font-size: 11px;
+  color: $text-light;
+  margin-top: 2px;
+}

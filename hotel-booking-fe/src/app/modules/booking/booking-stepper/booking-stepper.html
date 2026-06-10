@@ -1,0 +1,442 @@
+<div class="stepper-page animate-in">
+
+  <!-- ══ STEPS BAR ════════════════════════════════════════ -->
+  <div class="steps-bar">
+    <div class="steps-inner">
+      @for (step of steps; track step; let i = $index) {
+        <div class="step-item"
+             [class.active]="currentStep() === i"
+             [class.done]="currentStep() > i">
+          <div class="step-circle">
+            @if (currentStep() > i) { ✓ }
+            @else { {{ i + 1 }} }
+          </div>
+          <div class="step-label">{{ step }}</div>
+        </div>
+        @if (i < steps.length - 1) {
+          <div class="step-line" [class.done]="currentStep() > i"></div>
+        }
+      }
+    </div>
+  </div>
+
+  <div class="stepper-body">
+
+    <!-- ══ ÉTAPE 0 : COORDONNÉES ══════════════════════════ -->
+    @if (currentStep() === 0) {
+      <div class="step-content animate-in">
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="sch-icon">👤</div>
+            <div>
+              <h2 class="sch-title">Vos coordonnées</h2>
+              <p class="sch-sub">Ces informations seront utilisées pour votre réservation</p>
+            </div>
+          </div>
+
+          <form [formGroup]="personalForm" class="form-body">
+
+            <div class="form-row">
+              <div class="field-group">
+                <label class="field-label">Prénom *</label>
+                <input class="field-input"
+                       formControlName="firstName"
+                       placeholder="Youssef"
+                       autocomplete="given-name" />
+                @if (pf['firstName'].invalid && pf['firstName'].touched) {
+                  <span class="field-error">Minimum 2 caractères requis</span>
+                }
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Nom *</label>
+                <input class="field-input"
+                       formControlName="lastName"
+                       placeholder="Amrani"
+                       autocomplete="family-name" />
+                @if (pf['lastName'].invalid && pf['lastName'].touched) {
+                  <span class="field-error">Nom requis</span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label class="field-label">Email *</label>
+                <input class="field-input"
+                       type="email"
+                       formControlName="email"
+                       placeholder="youssef@email.com"
+                       autocomplete="email" />
+                @if (pf['email'].invalid && pf['email'].touched) {
+                  <span class="field-error">Format email invalide</span>
+                }
+              </div>
+
+              <div class="field-group">
+                <label class="field-label">Téléphone</label>
+                <input class="field-input"
+                       type="tel"
+                       formControlName="phone"
+                       placeholder="+212 6XX XXX XXX"
+                       autocomplete="tel" />
+                @if (pf['phone'].invalid && pf['phone'].touched) {
+                  <span class="field-error">Format invalide (ex: +212661234567)</span>
+                }
+              </div>
+            </div>
+
+            <div class="field-group">
+              <label class="field-label">
+                Demandes spéciales
+                <span class="optional-tag">optionnel</span>
+              </label>
+              <textarea class="field-input"
+                        formControlName="specialRequests"
+                        rows="3"
+                        placeholder="Chambre non-fumeur, lit bébé, arrivée tardive après 22h...">
+              </textarea>
+              <div class="char-count">
+                {{ pf['specialRequests'].value?.length || 0 }} / 500
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    }
+
+    <!-- ══ ÉTAPE 1 : SÉJOUR ═══════════════════════════════ -->
+    @if (currentStep() === 1) {
+      <div class="step-content animate-in">
+
+        <!-- Recap chambre sélectionnée -->
+        @if (room()) {
+          <div class="room-recap-card">
+            <div class="rrc-img">
+              <img [src]="room()?.primaryImageUrl || 'assets/images/room-default.jpg'"
+                   [alt]="room()?.typeLabel"
+                   (error)="onImgError($event)" />
+            </div>
+            <div class="rrc-body">
+              <div class="rrc-type">{{ room()?.typeLabel }}</div>
+              <div class="rrc-hotel">
+                {{ room()?.hotel?.name }} · {{ room()?.hotel?.city }}
+                · {{ room()?.hotel?.stars }}⭐
+              </div>
+              <div class="rrc-feats">
+                @if (room()?.seaView)    { <span class="feat">🌊 Vue mer</span> }
+                @if (room()?.jacuzzi)    { <span class="feat">🛁 Jacuzzi</span> }
+                @if (room()?.breakfast)  { <span class="feat">🍳 Petit-déj</span> }
+                @if (room()?.wifi)       { <span class="feat">📶 WiFi</span> }
+                @if (room()?.parking)    { <span class="feat">🅿️ Parking</span> }
+                @if (room()?.roomSizeM2) {
+                  <span class="feat">{{ room()?.roomSizeM2 }} m²</span>
+                }
+              </div>
+              <div class="rrc-price">
+                {{ room()?.pricePerNight | number:'1.0-0' }} MAD
+                <span>/ nuit</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="sch-icon">📅</div>
+            <div>
+              <h2 class="sch-title">Détails du séjour</h2>
+              <p class="sch-sub">Choisissez vos dates et le nombre de voyageurs</p>
+            </div>
+          </div>
+
+          <div class="form-body">
+            <div class="form-row">
+              <div class="field-group">
+                <label class="field-label">Date d'arrivée *</label>
+                <input class="field-input"
+                       type="date"
+                       [(ngModel)]="checkIn"
+                       [min]="today"
+                       (change)="onDateChange()" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Date de départ *</label>
+                <input class="field-input"
+                       type="date"
+                       [(ngModel)]="checkOut"
+                       [min]="checkIn || today"
+                       (change)="onDateChange()" />
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="field-group">
+                <label class="field-label">Voyageurs</label>
+                <select class="field-input" [(ngModel)]="guestsCount">
+                  @for (n of [1,2,3,4,5,6]; track n) {
+                    <option [value]="n">
+                      {{ n }} voyageur{{ n > 1 ? 's' : '' }}
+                    </option>
+                  }
+                </select>
+              </div>
+              <div class="field-group">
+                <label class="field-label">Type de lit</label>
+                <select class="field-input" [(ngModel)]="bedType">
+                  <option value="king">Lit King (200×200)</option>
+                  <option value="twin">Lits jumeaux</option>
+                  <option value="queen">Lit Queen (160×200)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Récapitulatif prix -->
+            @if (nights() > 0) {
+              <div class="price-recap">
+                <div class="pr-title">Récapitulatif du prix</div>
+
+                <div class="pr-row">
+                  <span>
+                    {{ room()?.pricePerNight | number:'1.0-0' }} MAD
+                    × {{ nights() }} nuit{{ nights() > 1 ? 's' : '' }}
+                  </span>
+                  <span>{{ subtotal() | number:'1.0-0' }} MAD</span>
+                </div>
+
+                @if (discount() > 0) {
+                  <div class="pr-row discount">
+                    <span>🎁 Remise fidélité (−5%)</span>
+                    <span>−{{ discount() | number:'1.0-0' }} MAD</span>
+                  </div>
+                }
+
+                <div class="pr-row">
+                  <span>Taxes de séjour (10%)</span>
+                  <span>{{ tax() | number:'1.0-0' }} MAD</span>
+                </div>
+
+                <div class="pr-total">
+                  <span>Total à payer</span>
+                  <span>{{ total() | number:'1.0-0' }} MAD</span>
+                </div>
+              </div>
+            } @else if (checkIn && checkOut) {
+              <div class="date-error">
+                ⚠️ La date de départ doit être après la date d'arrivée
+              </div>
+            }
+
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ══ ÉTAPE 2 : PAIEMENT ═══════════════════════════════ -->
+    @if (currentStep() === 2) {
+      <div class="step-content animate-in">
+
+        <div class="step-card">
+          <div class="step-card-header">
+            <div class="sch-icon">💳</div>
+            <div>
+              <h2 class="sch-title">Mode de paiement</h2>
+              <p class="sch-sub">Choisissez votre mode de règlement</p>
+            </div>
+          </div>
+
+          <div class="form-body">
+
+            <!-- Choix paiement -->
+            <div class="pay-options">
+              <div class="pay-opt"
+                   [class.selected]="payMethod === 'card'"
+                   (click)="payMethod = 'card'">
+                <div class="po-icon">💳</div>
+                <div class="po-info">
+                  <div class="po-title">Carte bancaire</div>
+                  <div class="po-sub">Visa, Mastercard, CMI</div>
+                </div>
+                <div class="po-radio" [class.on]="payMethod === 'card'"></div>
+              </div>
+
+              <div class="pay-opt"
+                   [class.selected]="payMethod === 'onsite'"
+                   (click)="payMethod = 'onsite'">
+                <div class="po-icon">🏨</div>
+                <div class="po-info">
+                  <div class="po-title">Paiement à l'hôtel</div>
+                  <div class="po-sub">Régler à votre arrivée</div>
+                </div>
+                <div class="po-radio" [class.on]="payMethod === 'onsite'"></div>
+              </div>
+            </div>
+
+            <!-- Formulaire carte -->
+            @if (payMethod === 'card') {
+              <div class="card-form">
+                <div class="field-group">
+                  <label class="field-label">Numéro de carte</label>
+                  <input class="field-input"
+                         type="text"
+                         [(ngModel)]="cardNumber"
+                         placeholder="1234 5678 9012 3456"
+                         maxlength="19"
+                         (input)="formatCardNumber($event)" />
+                </div>
+                <div class="form-row">
+                  <div class="field-group">
+                    <label class="field-label">Expiration</label>
+                    <input class="field-input"
+                           type="text"
+                           [(ngModel)]="cardExpiry"
+                           placeholder="MM/AA"
+                           maxlength="5" />
+                  </div>
+                  <div class="field-group">
+                    <label class="field-label">CVV</label>
+                    <input class="field-input"
+                           type="password"
+                           [(ngModel)]="cardCvv"
+                           placeholder="123"
+                           maxlength="3" />
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Nom sur la carte</label>
+                  <input class="field-input"
+                         type="text"
+                         [(ngModel)]="cardName"
+                         placeholder="YOUSSEF AMRANI" />
+                </div>
+                <div class="secure-badge">
+                  🔒 Paiement sécurisé SSL 256 bits
+                </div>
+              </div>
+            }
+
+            <!-- Récap final -->
+            <div class="final-recap">
+              <div class="fr-row">
+                <span>{{ room()?.typeLabel }}</span>
+                <span>{{ room()?.hotel?.name }}</span>
+              </div>
+              <div class="fr-row">
+                <span>{{ checkIn | date:'dd MMM' }} → {{ checkOut | date:'dd MMM yyyy' }}</span>
+                <span>{{ nights() }} nuit{{ nights() > 1 ? 's' : '' }}</span>
+              </div>
+              <div class="fr-total">
+                <span>Total à payer</span>
+                <span>{{ total() | number:'1.0-0' }} MAD</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    }
+
+    <!-- ══ ÉTAPE 3 : CONFIRMATION ════════════════════════════ -->
+    @if (currentStep() === 3) {
+      <div class="step-content animate-in">
+        <div class="confirmation-card">
+
+          <div class="conf-check">✓</div>
+
+          <h2 class="conf-title">Réservation confirmée !</h2>
+          <p class="conf-sub">
+            Merci <strong>{{ pf['firstName'].value }}</strong>,
+            votre séjour est bien enregistré.
+          </p>
+
+          <div class="conf-ref-box">
+            <div class="crb-label">Numéro de réservation</div>
+            <div class="crb-val">{{ bookingRef() }}</div>
+          </div>
+
+          <div class="conf-info">
+            <div class="ci-row">
+              <span>🏨 Hôtel</span>
+              <strong>{{ room()?.hotel?.name }}</strong>
+            </div>
+            <div class="ci-row">
+              <span>🛏️ Chambre</span>
+              <strong>{{ room()?.typeLabel }}</strong>
+            </div>
+            <div class="ci-row">
+              <span>📅 Arrivée</span>
+              <strong>{{ checkIn | date:'EEE d MMM yyyy' : '' : 'fr-FR' }}</strong>
+            </div>
+            <div class="ci-row">
+              <span>📅 Départ</span>
+              <strong>{{ checkOut | date:'EEE d MMM yyyy' : '' : 'fr-FR' }}</strong>
+            </div>
+            <div class="ci-row">
+              <span>👥 Voyageurs</span>
+              <strong>{{ guestsCount }}</strong>
+            </div>
+            <div class="ci-row total">
+              <span>💰 Total payé</span>
+              <strong>{{ total() | number:'1.0-0' }} MAD</strong>
+            </div>
+          </div>
+
+          <div class="conf-email-note">
+            📧 Un email de confirmation a été envoyé à
+            <strong>{{ pf['email'].value }}</strong>
+          </div>
+
+          <div class="conf-actions">
+            <button class="btn btn-primary btn-lg"
+                    (click)="viewMyBookings()">
+              Voir mes réservations
+            </button>
+            <a routerLink="/hotels" class="btn btn-outline btn-lg">
+              Réserver une autre chambre
+            </a>
+          </div>
+
+        </div>
+      </div>
+    }
+
+  </div><!-- /stepper-body -->
+
+  <!-- ══ NAVIGATION BOUTONS ════════════════════════════════ -->
+  @if (currentStep() < 3) {
+    <div class="nav-btns">
+
+      @if (currentStep() > 0) {
+        <button class="btn btn-outline btn-lg" (click)="prev()">
+          ← Retour
+        </button>
+      } @else {
+        <div></div>
+      }
+
+      @if (currentStep() < 2) {
+        <button class="btn btn-primary btn-lg"
+                (click)="next()"
+                [disabled]="!isStepValid()">
+          Suivant →
+        </button>
+      }
+
+      @if (currentStep() === 2) {
+        <button class="btn btn-gold btn-lg"
+                (click)="submit()"
+                [disabled]="loading()">
+          @if (loading()) { ⏳ Traitement en cours... }
+          @else { ✓ Confirmer la réservation }
+        </button>
+      }
+
+    </div>
+  }
+
+</div>

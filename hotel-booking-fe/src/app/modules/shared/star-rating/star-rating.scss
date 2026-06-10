@@ -1,0 +1,38 @@
+$star-default: #ddd;
+$star-active: #c8a96e; // Votre doré luxe
+$text-muted: #64748b;
+
+.stars-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px; // Légèrement augmenté pour la lisibilité
+}
+
+.star {
+  font-size: 13px;
+  color: $star-default;
+  transition: color 0.15s ease;
+  line-height: 1;
+
+  &.filled {
+    color: $star-active;
+  }
+
+  // Optionnel : style spécifique pour les demi-étoiles si vous utilisez une font d'icônes
+  &.half {
+    position: relative;
+    // Ici vous pourriez ajouter un dégradé ou une icône half-star
+  }
+}
+
+.rating-num {
+  font-size: 11px;
+  color: $text-muted;
+  margin-left: 6px;
+  font-weight: 500;
+}
+
+// Gestion des tailles via les classes d'hôte
+:host-context(.size-sm) .star { font-size: 11px; }
+:host-context(.size-lg) .star { font-size: 18px; }
+:host-context(.size-xl) .star { font-size: 24px; }

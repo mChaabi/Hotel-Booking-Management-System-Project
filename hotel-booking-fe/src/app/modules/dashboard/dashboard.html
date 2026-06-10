@@ -1,0 +1,173 @@
+<div class="dashboard animate-in">
+
+  <!-- ══ HERO ══════════════════════════════════════════ -->
+  <div class="hero">
+    <div class="hero-inner">
+      <div>
+        <div class="hero-greeting">{{ greeting() }}, {{ user()?.firstName }} 👋</div>
+        <div class="hero-title">Tableau de bord</div>
+        <div class="hero-date">{{ today | date:'EEEE d MMMM yyyy' : '' : 'fr-FR' }}</div>
+      </div>
+      <div class="hero-badge">
+        <div class="hb-val">{{ stats().confirmed }}</div>
+        <div class="hb-lbl">Réservations actives</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-wrap">
+
+    <!-- ══ STATS CARDS ══════════════════════════════════ -->
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <div class="sc-icon" style="background:#e6f0fb">📅</div>
+        <div class="sc-body">
+          <div class="sc-val">{{ stats().total }}</div>
+          <div class="sc-lbl">Total réservations</div>
+        </div>
+        <div class="sc-delta up">Tout statuts</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="sc-icon" style="background:#e8f5ee">✅</div>
+        <div class="sc-body">
+          <div class="sc-val">{{ stats().confirmed }}</div>
+          <div class="sc-lbl">Confirmées</div>
+        </div>
+        <div class="sc-delta up">Actives</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="sc-icon" style="background:#fef3e2">⏳</div>
+        <div class="sc-body">
+          <div class="sc-val">{{ stats().pending }}</div>
+          <div class="sc-lbl">En attente</div>
+        </div>
+        <div class="sc-delta warn">À traiter</div>
+      </div>
+
+      <div class="stat-card">
+        <div class="sc-icon" style="background:#faeeda">💰</div>
+        <div class="sc-body">
+          <div class="sc-val">{{ stats().revenue | number:'1.0-0' }}</div>
+          <div class="sc-lbl">Revenu total (MAD)</div>
+        </div>
+        <div class="sc-delta up">Confirmé + terminé</div>
+      </div>
+
+    </div>
+
+    <!-- ══ ACTIONS RAPIDES ═══════════════════════════════ -->
+    <div class="actions-section">
+      <a routerLink="/hotels" class="main-action-btn">
+        <div class="mab-icon">+</div>
+        Nouvelle réservation
+      </a>
+      <div class="quick-actions">
+        <a routerLink="/hotels"      class="quick-btn">🔍 Rechercher une chambre</a>
+        <a routerLink="/my-bookings" class="quick-btn">📋 Voir mes réservations</a>
+      </div>
+    </div>
+
+    <!-- ══ IA ════════════════════════════════════════════ -->
+    @if (aiMessage()) {
+      <div class="ai-card">
+        <div class="ai-top">
+          <div class="ai-dot"></div>
+          <div class="ai-badge">IA LuxeStay</div>
+        </div>
+        <p class="ai-msg">{{ aiMessage() }}</p>
+        <div class="ai-actions">
+          <a routerLink="/hotels" class="btn btn-sm btn-primary">Voir les chambres</a>
+          <button class="btn btn-sm btn-outline"
+                  (click)="aiMessage.set('')">Fermer</button>
+        </div>
+      </div>
+    }
+
+    <!-- ══ RÉSERVATIONS RÉCENTES ══════════════════════════ -->
+    <div class="section-hdr">
+      <h2 class="section-heading">Réservations récentes</h2>
+      <a routerLink="/my-bookings" class="see-all">Voir tout →</a>
+    </div>
+
+    <!-- Loading -->
+    @if (loading()) {
+      <div class="skeleton-list">
+        @for (i of [1,2,3]; track i) {
+          <div class="sk-row">
+            <div class="sk-img"></div>
+            <div class="sk-lines">
+              <div class="sk-line w70"></div>
+              <div class="sk-line w40"></div>
+            </div>
+            <div class="sk-price"></div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Liste -->
+    @if (!loading()) {
+      @if (recentBookings().length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon">📋</div>
+          <div class="empty-title">Aucune réservation</div>
+          <div class="empty-sub">Commencez par réserver une chambre</div>
+          <a routerLink="/hotels" class="btn btn-primary" style="margin-top:16px">
+            Voir les chambres disponibles
+          </a>
+        </div>
+      } @else {
+        <div class="booking-table">
+          <div class="bt-head">
+            <span>Référence</span>
+            <span>Hôtel & Chambre</span>
+            <span>Dates</span>
+            <span>Prix</span>
+            <span>Statut</span>
+            <span></span>
+          </div>
+          @for (b of recentBookings(); track b.id) {
+            <div class="bt-row">
+              <div class="bt-ref">
+                <div class="bt-ref-code">{{ b.bookingReference }}</div>
+                <div class="bt-ref-date">
+                  {{ b.createdAt | date:'dd/MM/yyyy' }}
+                </div>
+              </div>
+              <div class="bt-hotel">
+                <div class="bt-hotel-name">{{ b.hotelName }}</div>
+                <div class="bt-hotel-room">
+                  {{ b.roomType }} · {{ b.hotelCity }}
+                </div>
+              </div>
+              <div class="bt-dates">
+                <span>{{ b.checkIn | date:'dd MMM' }}</span>
+                <span class="date-arrow">→</span>
+                <span>{{ b.checkOut | date:'dd MMM yyyy' }}</span>
+                <div class="bt-nights">{{ b.nights }} nuits</div>
+              </div>
+              <div class="bt-price">
+                {{ b.totalPrice | number:'1.0-0' }} MAD
+              </div>
+              <div class="bt-status">
+                <span [class]="'chip ' + statusCss(b.status)">
+                  {{ statusLabel(b.status) }}
+                </span>
+              </div>
+              <div class="bt-actions">
+                <a [routerLink]="['/my-bookings']"
+                   class="btn btn-sm btn-outline">
+                  Détails
+                </a>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
+
+  </div><!-- /page-wrap -->
+</div>

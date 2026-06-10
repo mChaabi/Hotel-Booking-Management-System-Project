@@ -1,0 +1,30 @@
+<!--
+  LOGIQUE APP SHELL :
+  ══════════════════
+  ✅ Connecté    → Navbar + Contenu + Footer
+  ✅ Non connecté → Page login seule (plein écran)
+-->
+
+<ng-container *ngIf="isLoggedIn(); else publicLayout">
+
+  <div class="app-shell">
+
+    <!-- ── Navbar fixe en haut ─────────────────────── -->
+    <app-navbar />
+
+    <!-- ── Zone de contenu scrollable ──────────────── -->
+    <main class="app-main">
+      <router-outlet />
+    </main>
+
+    <!-- ── Footer en bas ───────────────────────────── -->
+    <app-footer />
+
+  </div>
+
+</ng-container>
+
+<!-- Page login / register = plein écran sans navbar -->
+<ng-template #publicLayout>
+  <router-outlet />
+</ng-template>

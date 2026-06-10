@@ -1,0 +1,58 @@
+<div class="room-card" (click)="onSelect()" [routerLink]="['/hotels', room.hotelId]">
+
+  <div class="card-img">
+    <img [src]="room.primaryImageUrl || 'assets/images/room-default.jpg'"
+         [alt]="room.typeLabel"
+         class="room-img"
+         (error)="onImgError($event)" />
+
+    <div class="badges">
+      @if (isRecommended) {
+        <span class="badge badge-gold">⭐ Recommandé IA</span>
+      }
+      @if (room.isAvailable && !isRecommended) {
+        <span class="badge badge-green">✓ Disponible</span>
+      }
+      @if (isNew) {
+        <span class="badge badge-new">✨ Nouveau</span>
+      }
+    </div>
+
+    <button class="fav-btn"
+            [class.active]="isFavorite"
+            (click)="toggleFav($event)">
+      {{ isFavorite ? '❤️' : '♡' }}
+    </button>
+  </div>
+
+  <div class="card-body">
+    <div class="room-name">{{ room.typeLabel }}</div>
+    <div class="room-hotel">
+      {{ room.hotel?.name }} · {{ room.hotel?.city }}
+    </div>
+
+    <div class="feats">
+      @if (room.seaView) { <span class="feat">🌊 Vue mer</span> }
+      @if (room.jacuzzi) { <span class="feat">🛁 Jacuzzi</span> }
+      @if (room.breakfast) { <span class="feat">🍳 Petit-déj</span> }
+      @if (room.wifi) { <span class="feat">📶 WiFi</span> }
+      @if (room.roomSizeM2) {
+        <span class="feat">{{ room.roomSizeM2 }} m²</span>
+      }
+    </div>
+
+    <div class="card-footer">
+      <div class="price-block">
+        <div class="price">
+          {{ room.pricePerNight | number:'1.0-0' }} MAD
+        </div>
+        <div class="price-sub">/ nuit</div>
+      </div>
+
+      <app-star-rating
+        [stars]="room.hotel?.stars || 0"
+        [showNumber]="true"
+        class="size-sm" />
+    </div>
+  </div>
+</div>

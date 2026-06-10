@@ -1,0 +1,75 @@
+<div class="gallery">
+
+  <div class="main-image-container" (click)="openLightbox(currentIndex())">
+    <img [src]="currentImage().imageUrl"
+         [alt]="currentImage().altText"
+         class="main-image"
+         (error)="onImgError($event)" />
+
+    <div class="img-overlay">
+      <span class="img-counter">
+        {{ currentIndex() + 1 }} / {{ images().length }}
+      </span>
+      <button class="expand-btn">⛶ Agrandir</button>
+    </div>
+
+    <ng-container *ngIf="images().length > 1">
+      <button class="nav-btn prev" (click)="prev($event)">‹</button>
+      <button class="nav-btn next" (click)="next($event)">›</button>
+    </ng-container>
+  </div>
+
+  <div class="thumbnails" *ngIf="images().length > 1">
+    <div *ngFor="let img of images(); let i = index"
+         class="thumb-item"
+         [class.active]="currentIndex() === i"
+         (click)="setIndex(i)">
+      <img [src]="img.imageUrl" [alt]="img.altText" class="thumb-img" (error)="onImgError($event)" />
+      <div class="thumb-primary" *ngIf="img.isPrimary">⭐</div>
+    </div>
+  </div>
+
+  <div class="lightbox" *ngIf="lightboxOpen()" (click)="closeLightbox()">
+    <div class="lightbox-content" (click)="$event.stopPropagation()">
+      <button class="lb-close" (click)="closeLightbox()">✕</button>
+
+      <button class="lb-prev" (click)="prev($event)">‹</button>
+      <img [src]="currentImage().imageUrl" [alt]="currentImage().altText" class="lb-image" />
+      <button class="lb-next" (click)="next($event)">›</button>
+
+      <div class="lb-caption">
+        {{ currentImage().altText }}
+        ({{ currentIndex() + 1 }} / {{ images().length }})
+      </div>
+    </div>
+  </div>
+
+  <div class="upload-zone" *ngIf="isAdmin"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave()"
+       (drop)="onDrop($event)"
+       [class.drag-over]="isDragging()">
+
+    <input type="file" #fileInput multiple style="display:none"
+           accept="image/jpeg,image/png,image/webp"
+           (change)="onFileSelect($event)" />
+
+    <div class="upload-content" (click)="fileInput.click()">
+      <div class="upload-icon">📁</div>
+      <div class="upload-text">
+        Glissez vos photos ici ou <span class="upload-link">cliquez pour choisir</span>
+      </div>
+      <div class="upload-hint">JPEG, PNG, WebP — max 5 Mo</div>
+    </div>
+
+    <div class="upload-list" *ngIf="uploadQueue().length > 0">
+      <div *ngFor="let upload of uploadQueue()" class="upload-progress">
+        <div class="up-name">{{ upload.name }}</div>
+        <div class="up-bar">
+          <div class="up-fill" [style.width]="upload.progress + '%'"></div>
+        </div>
+        <div class="up-pct">{{ upload.progress }}%</div>
+      </div>
+    </div>
+  </div>
+</div>

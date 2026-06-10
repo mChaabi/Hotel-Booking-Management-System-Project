@@ -1,0 +1,102 @@
+<div class="admin-layout">
+
+  <div class="admin-sidebar">
+    <div class="sb-title">Administration</div>
+    <nav class="sb-nav">
+      <a *ngFor="let item of navItems"
+         [class.active]="activeTab() === item.id"
+         (click)="setTab(item.id)" class="sb-link">
+        <span class="sb-icon">{{ item.icon }}</span>
+        {{ item.label }}
+      </a>
+    </nav>
+  </div>
+
+  <div class="admin-content">
+
+    <div *ngIf="activeTab() === 'dashboard'">
+      <h2>Vue d'ensemble</h2>
+
+      <div class="kpi-row">
+        <div class="kpi-card" *ngFor="let k of kpis">
+          <div class="kpi-icon" [style.background]="k.bg">{{ k.icon }}</div>
+          <div class="kpi-val">{{ k.value }}</div>
+          <div class="kpi-label">{{ k.label }}</div>
+          <div class="kpi-delta" [class.up]="k.up" [class.down]="!k.up">{{ k.delta }}</div>
+        </div>
+      </div>
+
+      <div class="ai-insight">
+        <span class="ai-badge">🤖 Analyse IA</span>
+        <div class="ai-insight-text">{{ aiInsight() }}</div>
+        <div class="ai-insight-actions">
+          <button (click)="launchAiCampaign()">Lancer campagne email</button>
+          <button (click)="refreshAiInsight()">🔄 Actualiser</button>
+        </div>
+      </div>
+
+      <div class="admin-table-card">
+        <div class="table-header">
+          <h3>Réservations récentes</h3>
+          <input [(ngModel)]="searchTerm" placeholder="Rechercher..." class="table-search" />
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Référence</th><th>Client</th><th>Hôtel</th><th>Arrivée</th><th>Total</th><th>Statut</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let b of filteredBookings()">
+              <td class="mono">{{ b.bookingReference }}</td>
+              <td>{{ b.clientFirstName }}</td>
+              <td>{{ b.hotelName }}</td>
+              <td>{{ b.checkIn | date:'dd MMM yyyy' }}</td>
+              <td class="price">{{ b.totalPrice | number }} MAD</td>
+              <td>
+                <span class="status-chip" [class]="'chip-' + b.status.toLowerCase()">
+                  {{ statusLabel(b.status) }}
+                </span>
+              </td>
+              <td class="actions-td">
+                <button title="Voir">👁️</button>
+                <button class="danger" *ngIf="b.status === 'CONFIRMED'" (click)="cancelBooking(b)">✕</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div *ngIf="activeTab() === 'rooms'">
+      <div class="page-header">
+        <h2>Gestion des chambres</h2>
+        <button class="btn-add" (click)="showAddRoom()">+ Ajouter chambre</button>
+      </div>
+
+      <div class="form-card" *ngIf="showRoomForm()">
+        <form [formGroup]="roomForm" (ngSubmit)="saveRoom()">
+          <div class="form-grid">
+            <div class="field">
+              <label>Hôtel *</label>
+              <select formControlName="hotelId">
+                <option *ngFor="let h of hotels()" [value]="h.id">{{ h.name }}</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Prix / nuit (MAD) *</label>
+              <input type="number" formControlName="pricePerNight" />
+            </div>
+            </div>
+          <div class="form-actions">
+            <button type="button" (click)="showRoomForm.set(false)">Annuler</button>
+            <button type="submit" [disabled]="roomForm.invalid || saving()">
+              {{ saving() ? 'Sauvegarde...' : 'Sauvegarder' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>

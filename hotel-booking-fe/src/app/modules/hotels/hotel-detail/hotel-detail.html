@@ -1,0 +1,377 @@
+<div class="hotel-detail animate-in">
+
+  <!-- ══ LOADING ══════════════════════════════════════════ -->
+  @if (loading()) {
+    <div class="loading-screen">
+      <div class="spinner-lg"></div>
+      <div class="loading-text">Chargement de l'hôtel...</div>
+    </div>
+  }
+
+  @if (!loading() && hotel()) {
+
+    <!-- ══ BREADCRUMB ════════════════════════════════════════ -->
+    <div class="breadcrumb">
+      <div class="bc-inner">
+        <button class="bc-back" (click)="goBack()">← Chambres</button>
+        <span class="bc-sep">/</span>
+        <span class="bc-current">{{ hotel()!.name }}</span>
+      </div>
+    </div>
+
+    <!-- ══ GALERIE ════════════════════════════════════════════ -->
+    <div class="gallery-section">
+
+      <!-- Image principale -->
+      <div class="gal-main">
+        <img [src]="currentImage()"
+             [alt]="hotel()!.name"
+             (error)="onImgError($event)"
+             class="gal-main-img" />
+
+        <!-- Overlay haut : nom + étoiles -->
+        <div class="gal-overlay-top">
+          <div class="gal-hotel-name">{{ hotel()!.name }}</div>
+          <div class="gal-stars">
+            @for (s of starsArray(hotel()!.stars); track s.n) {
+              <span [class.filled]="s.filled">★</span>
+            }
+          </div>
+          <div class="gal-city">📍 {{ hotel()!.city }}, {{ hotel()!.country }}</div>
+        </div>
+
+        <!-- Navigation galerie -->
+        @if (galleryImages().length > 1) {
+          <button class="gal-nav prev" (click)="galPrev()">‹</button>
+          <button class="gal-nav next" (click)="galNext()">›</button>
+          <div class="gal-counter">
+            {{ galIdx() + 1 }} / {{ galleryImages().length }}
+          </div>
+        }
+      </div>
+
+      <!-- Miniatures -->
+      @if (galleryImages().length > 1) {
+        <div class="gal-thumbs">
+          @for (img of galleryImages(); track img; let i = $index) {
+            <div class="gal-thumb"
+                 [class.active]="galIdx() === i"
+                 (click)="setGalIdx(i)">
+              <img [src]="img" [alt]="'Photo ' + (i+1)"
+                   (error)="onImgError($event)" />
+            </div>
+          }
+        </div>
+      }
+
+    </div>
+
+    <!-- ══ CONTENU PRINCIPAL ══════════════════════════════════ -->
+    <div class="detail-layout">
+
+      <!-- ── COLONNE GAUCHE : Infos ─────────────────────────── -->
+      <div class="detail-left">
+
+        <!-- Onglets -->
+        <div class="detail-tabs">
+          <button class="dtab"
+                  [class.active]="activeTab() === 'rooms'"
+                  (click)="activeTab.set('rooms')">
+            🛏️ Chambres disponibles
+          </button>
+          <button class="dtab"
+                  [class.active]="activeTab() === 'amenities'"
+                  (click)="activeTab.set('amenities')">
+            ✨ Équipements
+          </button>
+          <button class="dtab"
+                  [class.active]="activeTab() === 'contact'"
+                  (click)="activeTab.set('contact')">
+            📞 Contact & Localisation
+          </button>
+        </div>
+
+        <!-- ── TAB : CHAMBRES ──────────────────────────────── -->
+        @if (activeTab() === 'rooms') {
+          <div class="rooms-section animate-in">
+
+            <div class="section-intro">
+              <h2 class="section-heading">Chambres & Tarifs</h2>
+              <p class="section-sub">
+                {{ hotel()!.rooms.length }} type{{ hotel()!.rooms.length > 1 ? 's' : '' }}
+                de chambre disponible
+              </p>
+            </div>
+
+            <div class="rooms-list">
+              @for (room of hotel()!.rooms; track room.id) {
+                <div class="room-item">
+
+                  <!-- Image chambre -->
+                  <div class="ri-img">
+                    <img [src]="room.primaryImageUrl || 'assets/images/room-default.jpg'"
+                         [alt]="room.typeLabel"
+                         (error)="onImgError($event)" />
+                    <div class="ri-img-overlay">
+                      @if (room.seaView) {
+                        <span class="ri-badge">🌊 Vue mer</span>
+                      }
+                    </div>
+                  </div>
+
+                  <!-- Infos chambre -->
+                  <div class="ri-body">
+
+                    <div class="ri-header">
+                      <div>
+                        <div class="ri-type">{{ room.typeLabel }}</div>
+                        <div class="ri-meta">
+                          Chambre {{ room.roomNumber }}
+                          @if (room.floorNumber) { · Étage {{ room.floorNumber }} }
+                          @if (room.roomSizeM2) { · {{ room.roomSizeM2 }} m² }
+                          · {{ room.capacity }} pers. max
+                        </div>
+                      </div>
+                    </div>
+
+                    @if (room.description) {
+                      <p class="ri-desc">{{ room.description }}</p>
+                    }
+
+                    <!-- Équipements chambre -->
+                    <div class="ri-feats">
+                      @if (room.wifi) {
+                        <span class="ri-feat">📶 WiFi</span>
+                      }
+                      @if (room.airConditioning) {
+                        <span class="ri-feat">❄️ Climatisation</span>
+                      }
+                      @if (room.minibar) {
+                        <span class="ri-feat">🍾 Minibar</span>
+                      }
+                      @if (room.jacuzzi) {
+                        <span class="ri-feat">🛁 Jacuzzi</span>
+                      }
+                      @if (room.seaView) {
+                        <span class="ri-feat">🌊 Vue mer</span>
+                      }
+                      @if (room.parking) {
+                        <span class="ri-feat">🅿️ Parking</span>
+                      }
+                      @if (room.breakfast) {
+                        <span class="ri-feat">🍳 Petit-déj inclus</span>
+                      }
+                    </div>
+
+                    <!-- Prix + Réserver -->
+                    <div class="ri-footer">
+                      <div class="ri-price-block">
+                        <div class="ri-price">
+                          {{ room.pricePerNight | number:'1.0-0' }} MAD
+                        </div>
+                        <div class="ri-price-sub">par nuit</div>
+                      </div>
+                      <button class="btn-reserve-room"
+                              (click)="reserve(room)">
+                        Réserver cette chambre →
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+              }
+            </div>
+
+          </div>
+        }
+
+        <!-- ── TAB : ÉQUIPEMENTS ─────────────────────────────── -->
+        @if (activeTab() === 'amenities') {
+          <div class="amenities-section animate-in">
+
+            <h2 class="section-heading">Équipements & Services</h2>
+            <p class="section-sub" style="margin-bottom: 22px">
+              Tout ce que cet hôtel offre pour votre confort
+            </p>
+
+            <div class="amenities-grid">
+              @for (a of hotel()!.amenities; track a) {
+                <div class="amen-item">
+                  <div class="amen-check">✓</div>
+                  <div class="amen-name">{{ a }}</div>
+                </div>
+              }
+            </div>
+
+            <!-- Description hôtel -->
+            @if (hotel()!.description) {
+              <div class="hotel-desc-card">
+                <h3>À propos de l'hôtel</h3>
+                <p>{{ hotel()!.description }}</p>
+              </div>
+            }
+
+          </div>
+        }
+
+        <!-- ── TAB : CONTACT & LOCALISATION ────────────────── -->
+        @if (activeTab() === 'contact') {
+          <div class="contact-section animate-in">
+
+            <h2 class="section-heading">Contact & Localisation</h2>
+
+            <div class="contact-grid">
+
+              <div class="contact-card">
+                <div class="cc-icon" style="background:#e6f0fb">📞</div>
+                <div class="cc-body">
+                  <div class="cc-label">Téléphone</div>
+                  <a [href]="'tel:' + hotel()!.phoneNumber"
+                     class="cc-value link">
+                    {{ hotel()!.phoneNumber || 'Non renseigné' }}
+                  </a>
+                </div>
+              </div>
+
+              <div class="contact-card">
+                <div class="cc-icon" style="background:#e8f5ee">✉️</div>
+                <div class="cc-body">
+                  <div class="cc-label">Email</div>
+                  <a [href]="'mailto:' + hotel()!.email"
+                     class="cc-value link">
+                    {{ hotel()!.email || 'Non renseigné' }}
+                  </a>
+                </div>
+              </div>
+
+              <div class="contact-card">
+                <div class="cc-icon" style="background:#fef3e2">📍</div>
+                <div class="cc-body">
+                  <div class="cc-label">Adresse</div>
+                  <div class="cc-value">{{ hotel()!.address }}</div>
+                  <div class="cc-value secondary">
+                    {{ hotel()!.city }}, {{ hotel()!.country }}
+                  </div>
+                </div>
+              </div>
+
+              <div class="contact-card">
+                <div class="cc-icon" style="background:#f0eeff">🕐</div>
+                <div class="cc-body">
+                  <div class="cc-label">Horaires</div>
+                  <div class="cc-value">
+                    Check-in : {{ hotel()!.checkInTime || '14:00' }}
+                  </div>
+                  <div class="cc-value secondary">
+                    Check-out : {{ hotel()!.checkOutTime || '12:00' }}
+                  </div>
+                </div>
+              </div>
+
+              @if (hotel()!.websiteUrl) {
+                <div class="contact-card">
+                  <div class="cc-icon" style="background:#fde8e8">🌐</div>
+                  <div class="cc-body">
+                    <div class="cc-label">Site web</div>
+                    <a [href]="'https://' + hotel()!.websiteUrl"
+                       target="_blank"
+                       class="cc-value link">
+                      {{ hotel()!.websiteUrl }}
+                    </a>
+                  </div>
+                </div>
+              }
+
+            </div>
+
+            <!-- Carte Google Maps -->
+            <div class="map-card" (click)="openMap()">
+              <div class="map-visual">
+                <div class="map-grid-bg"></div>
+                <div class="map-road-h"></div>
+                <div class="map-road-v"></div>
+                <div class="map-pin">
+                  <div class="pin-circle"></div>
+                  <div class="pin-tail"></div>
+                </div>
+                <div class="map-label-badge">
+                  📍 {{ hotel()!.city }}
+                </div>
+              </div>
+              <div class="map-footer">
+                <div class="map-address">
+                  {{ hotel()!.address }}, {{ hotel()!.city }}
+                </div>
+                <button class="map-btn">
+                  Ouvrir Google Maps →
+                </button>
+              </div>
+            </div>
+
+          </div>
+        }
+
+      </div><!-- /detail-left -->
+
+      <!-- ── COLONNE DROITE : Sticky summary ──────────────── -->
+      <div class="detail-right">
+        <div class="sticky-card">
+
+          <div class="sc-hotel">
+            <div class="sc-name">{{ hotel()!.name }}</div>
+            <div class="sc-stars">
+              @for (s of starsArray(hotel()!.stars); track s.n) {
+                <span [class.filled]="s.filled">★</span>
+              }
+            </div>
+            <div class="sc-city">📍 {{ hotel()!.city }}</div>
+          </div>
+
+          <div class="sc-price-range">
+            <div class="scpr-label">À partir de</div>
+            <div class="scpr-price">
+              {{ minPrice() | number:'1.0-0' }} MAD
+              <span>/ nuit</span>
+            </div>
+          </div>
+
+          <div class="sc-rooms-count">
+            {{ hotel()!.rooms.length }} chambre{{ hotel()!.rooms.length > 1 ? 's' : '' }}
+            disponible{{ hotel()!.rooms.length > 1 ? 's' : '' }}
+          </div>
+
+          <!-- Liste rapide chambres -->
+          <div class="sc-room-list">
+            @for (room of hotel()!.rooms; track room.id) {
+              <div class="sc-room-item">
+                <div class="scri-type">{{ room.typeLabel }}</div>
+                <div class="scri-price">
+                  {{ room.pricePerNight | number:'1.0-0' }} MAD/nuit
+                </div>
+                <button class="scri-btn" (click)="reserve(room)">
+                  Réserver
+                </button>
+              </div>
+            }
+          </div>
+
+          <!-- Contact rapide -->
+          <div class="sc-contact">
+            <a [href]="'tel:' + hotel()!.phoneNumber"
+               class="sc-contact-btn phone">
+              📞 Appeler l'hôtel
+            </a>
+            <a [href]="'mailto:' + hotel()!.email"
+               class="sc-contact-btn email">
+              ✉️ Envoyer un email
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /detail-layout -->
+
+  }<!-- /if hotel -->
+
+</div>
